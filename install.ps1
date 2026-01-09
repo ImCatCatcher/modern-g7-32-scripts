@@ -7,19 +7,19 @@ $REPO_NAME = "modern-g7-32"
 $GITHUB_API = "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest"
 $GIT_URL = "https://github.com/$REPO_OWNER/$REPO_NAME"
 
-Write-Host "==> РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ СѓСЃС‚Р°РЅРѕРІРєРё РїР°РєРµС‚Р° $REPO_NAME..." -ForegroundColor Blue
+Write-Host "==> Инициализация установки пакета $REPO_NAME..." -ForegroundColor Blue
 
 try {
     $response = Invoke-RestMethod -Uri $GITHUB_API -Method Get
     $LATEST_TAG = $response.tag_name
 } catch {
-    Write-Host "РћС€РёР±РєР°: РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РїРѕСЃР»РµРґРЅРµРј СЂРµР»РёР·Рµ." -ForegroundColor Red
+    Write-Host "Ошибка: Не удалось получить информацию о последнем релизе." -ForegroundColor Red
     exit 1
 }
 
 if ([string]::IsNullOrEmpty($LATEST_TAG)) {
-    Write-Host "РћС€РёР±РєР°: " -NoNewline -ForegroundColor Red
-    Write-Host "РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ РїРѕСЃР»РµРґРЅРµРј СЂРµР»РёР·Рµ."
+    Write-Host "Ошибка: " -NoNewline -ForegroundColor Red
+    Write-Host "Не удалось получить информацию о последнем релизе."
     exit 1
 }
 
@@ -28,10 +28,10 @@ $VERSION = $LATEST_TAG -replace '^v', ''
 $TARGET_DIR = Join-Path $env:LOCALAPPDATA "typst\packages\preview\$REPO_NAME\$VERSION"
 
 Write-Host "==> " -NoNewline -ForegroundColor Blue
-Write-Host "РћР±РЅР°СЂСѓР¶РµРЅР° РїРѕСЃР»РµРґРЅСЏСЏ РІРµСЂСЃРёСЏ: " -NoNewline
+Write-Host "Обнаружена последняя версия: " -NoNewline
 Write-Host $VERSION -ForegroundColor Green
 Write-Host "==> " -NoNewline -ForegroundColor Blue
-Write-Host "Р¦РµР»РµРІР°СЏ РґРёСЂРµРєС‚РѕСЂРёСЏ: $TARGET_DIR"
+Write-Host "Целевая директория: $TARGET_DIR"
 
 function Draw-ProgressBar {
     param(
@@ -47,7 +47,7 @@ function Draw-ProgressBar {
     try {
         while ($Job.State -eq "Running") {
             $spaces = 30 - $i
-            $bar = "[Р—Р°РіСЂСѓР·РєР°] ["
+            $bar = "[Загрузка] ["
             
             for ($j = 0; $j -lt $i; $j++) {
                 $bar += " "
@@ -174,16 +174,15 @@ Remove-Job -Job $job
 $EXIT_CODE = $result
 
 if ($EXIT_CODE -eq 0) {
-    Write-Host "вњ” РЈСЃРїРµС€РЅРѕ! " -NoNewline -ForegroundColor Green
-    Write-Host "РџР°РєРµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅ РІ $TARGET_DIR"
+    Write-Host "✔ Успешно! " -NoNewline -ForegroundColor Green
+    Write-Host "Пакет установлен в $TARGET_DIR"
 } elseif ($EXIT_CODE -eq 2) {
-    Write-Host "вљ  Р’РЅРёРјР°РЅРёРµ: " -NoNewline -ForegroundColor Yellow
-    Write-Host "Git pull РЅРµ СѓРґР°Р»СЃСЏ, Р±С‹Р»Р° РІС‹РїРѕР»РЅРµРЅР° РїРѕР»РЅР°СЏ РїРµСЂРµСѓСЃС‚Р°РЅРѕРІРєР°."
-    Write-Host "вњ” РЈСЃРїРµС€РЅРѕ! " -NoNewline -ForegroundColor Green
-    Write-Host "Р РµРїРѕР·РёС‚РѕСЂРёР№ РїРµСЂРµР·Р°РїРёСЃР°РЅ."
+    Write-Host "⚠ Внимание: " -NoNewline -ForegroundColor Yellow
+    Write-Host "Git pull не удался, была выполнена полная переустановка."
+    Write-Host "✔ Успешно! " -NoNewline -ForegroundColor Green
+    Write-Host "Репозиторий перезаписан."
 } else {
-    Write-Host "вњ– РћС€РёР±РєР°: " -NoNewline -ForegroundColor Red
-    Write-Host "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРєР°С‡Р°С‚СЊ РёР»Рё РѕР±РЅРѕРІРёС‚СЊ СЂРµРїРѕР·РёС‚РѕСЂРёР№."
+    Write-Host "✖ Ошибка: " -NoNewline -ForegroundColor Red
+    Write-Host "Не удалось скачать или обновить репозиторий."
     exit 1
 }
-
